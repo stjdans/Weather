@@ -44,4 +44,4 @@ viewmodel, flow 를 이용 mvvm 구조의 반응형 프로그램으로 구현
   Google Map 사용 시 signingConfigs keystore 정보 입력 필요
 
 ### 설치 파일
-app > release > app-release.apk 사용
+app-debug.apk 사용
