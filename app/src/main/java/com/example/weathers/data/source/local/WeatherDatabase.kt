@@ -24,7 +24,7 @@ abstract class WeatherDatabase : RoomDatabase() {
                         "weather.db"
                     )
                         .addCallback(initDataCallback(context))
-                        .fallbackToDestructiveMigration()
+//                        .fallbackToDestructiveMigration()
                         .build()
                 }
 
