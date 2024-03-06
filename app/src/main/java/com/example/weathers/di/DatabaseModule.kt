@@ -20,12 +20,7 @@ object DatabaseModule {
     fun provideLocationDatabase(
         @ApplicationContext context: Context
     ): WeatherDatabase {
-        return Room.databaseBuilder(
-            context.applicationContext,
-            WeatherDatabase::class.java,
-            "weather.db"
-        ).fallbackToDestructiveMigration()
-            .build()
+        return WeatherDatabase.getInstance(context)
     }
 
     @Singleton
