@@ -13,6 +13,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Qualifier
 
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(ViewModelComponent::class)
 abstract class RepositoryImplModule {
 
     @Binds
@@ -34,7 +35,7 @@ abstract class RepositoryImplModule {
 }
 
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(ViewModelComponent::class)
 abstract class DataSoruceImplModule {
 
     @Binds
@@ -42,7 +43,7 @@ abstract class DataSoruceImplModule {
 }
 
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(ViewModelComponent::class)
 object DataSoruceModule {
     @Provides
     fun provideWeatherService(
@@ -77,7 +78,7 @@ object DataSoruceModule {
     @Provides
     fun provideHttpLoggingInterceptor(): Interceptor = HttpLoggingInterceptor {
         Log.i(TAG_INTERCEPTOR, it)
-    }.apply { level = HttpLoggingInterceptor.Level.BODY }
+    }.apply { level = HttpLoggingInterceptor.Level.BASIC }
 
     @CustomLoggingInterceptor
     @Provides

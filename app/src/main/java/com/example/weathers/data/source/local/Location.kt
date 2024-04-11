@@ -24,7 +24,7 @@ data class Location(
     val level: Int = 0 // 1: [시, 도] 2: [구, 시] 3: [동, 면, 리, ...]
 ) {
     val adress: String
-        get() = "${adress1}${if (adress2 != null) "$adress2 " else ""}${if (adress3 != null) "$adress3 " else ""}"
+        get() = "${adress1}${if (adress2 != null) " $adress2" else ""}${if (adress3 != null) " $adress3" else ""}"
 
     val latLng: LatLng
         get() = LatLng(latitude4_100, longitude4_100)

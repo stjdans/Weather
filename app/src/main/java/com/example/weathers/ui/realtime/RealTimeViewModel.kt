@@ -3,13 +3,14 @@ package com.example.weathers.ui.realtime
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weathers.data.WeatherRepository
-import com.example.weathers.data.source.local.Location
 import com.example.weathers.data.model.Weather
+import com.example.weathers.data.source.local.Location
 import com.example.weathers.data.source.sensor.LocationProvider
 import com.example.weathers.data.source.sensor.getMapXY
 import com.example.weathers.util.LoadTask
 import com.example.weathers.util.distanceTo
 import com.example.weathers.util.toLatLng
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +28,7 @@ data class RealTimeUiState(
     val searchItems: List<Location> = emptyList()
 )
 
-//@HiltViewModel
+@HiltViewModel
 class RealTimeViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
     private val locationProvider: LocationProvider

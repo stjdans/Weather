@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weathers.data.WeatherRepository
-import com.example.weathers.data.source.local.Location
-import com.example.weathers.data.source.sensor.LocationProvider
-import com.example.weathers.data.source.sensor.getMapXY
 import com.example.weathers.data.model.Weather
+import com.example.weathers.data.source.local.Location
+import com.example.weathers.data.source.sensor.getMapXY
 import com.example.weathers.util.LoadTask
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -26,9 +26,9 @@ data class MapUiState(
     val weather: Weather? = null,
 )
 
+@HiltViewModel
 class MapViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
-    private val locationProvider: LocationProvider,
     private var googleMapManager: GoogleMapManager
 ) : ViewModel() {
 

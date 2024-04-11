@@ -3,15 +3,12 @@ package com.example.weathers
 import android.content.Context
 import android.location.LocationManager
 import android.os.Bundle
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
-import androidx.lifecycle.Lifecycle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.findNavController
-import androidx.navigation.ui.setupWithNavController
-import com.example.weathers.component.BaseActivity
-import com.example.weathers.databinding.ActivityMainBinding
+import com.example.weathers.ui.main.MainScreen
+import com.example.weathers.ui.theme.WeathersTheme
 import com.example.weathers.util.LOCATION_PERMISSIONS
 import com.example.weathers.util.checkLocationPermission
 import com.example.weathers.util.goToDeviceLocation
@@ -25,7 +22,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -35,7 +31,7 @@ data class MainUiState(
 )
 
 @AndroidEntryPoint
-class MainActivity : BaseActivity<ActivityMainBinding>() {
+class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var viewModel: MainViewModel
@@ -62,42 +58,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
 
-        setContentView(binding.root)
-
-        val navView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        navView.setupWithNavController(navController)
-
-        locationContracts = setUpLocationContract(onGranted = ::updateLocationPermissionState)
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                uiState.collect { state ->
-                    when {
-                        !state.allowedLocation -> showErrorMessage(
-                            id = R.string.error_location_permission,
-                            onClick = this@MainActivity::handleNotAllowLocationPermission
-                        )
-
-                        !state.enableGps -> showErrorMessage(
-                            id = R.string.error_gps,
-                            onClick = this@MainActivity::goToDeviceLocation
-                        )
-
-                        else -> hideErrorMessage()
-                    }
-                }
+        setContent {
+            WeathersTheme {
+                MainScreen(
+                    uiState = uiState,
+                    onPermissionRequestClick = ::handleNotAllowLocationPermission,
+                    onDeviceSettingClick = ::goToDeviceLocation
+                )
             }
         }
-    }
 
-    private fun handleNotAllowLocationPermission() {
-        when {
-            showRequestPermissionRationalesAny(LOCATION_PERMISSIONS) -> locationContracts.launch(LOCATION_PERMISSIONS)
-            else -> goToDeviceSettings()
-        }
+        locationContracts = setUpLocationContract(onGranted = ::updateLocationPermissionState)
     }
 
     override fun onResume() {
@@ -111,19 +83,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         viewModel.stopLocationUpdate()
     }
 
-    private fun showErrorMessage(id: Int, onClick: () -> Unit = {}) {
-        binding.infoMessage.apply {
-            text = getString(id)
-            visibility = View.VISIBLE
-            setOnClickListener { onClick() }
-        }
-    }
-
-    private fun hideErrorMessage() {
-        binding.infoMessage.run {
-            text = ""
-            visibility = View.GONE
-            setOnClickListener(null)
+    private fun handleNotAllowLocationPermission() {
+        when {
+            showRequestPermissionRationalesAny(LOCATION_PERMISSIONS) -> locationContracts.launch(LOCATION_PERMISSIONS)
+            else -> goToDeviceSettings()
         }
     }
 

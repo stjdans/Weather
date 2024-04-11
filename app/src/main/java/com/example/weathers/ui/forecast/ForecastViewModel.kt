@@ -4,25 +4,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weathers.data.WeatherRepository
 import com.example.weathers.data.model.Weather
-import com.example.weathers.data.model.WeatherStaus
 import com.example.weathers.data.source.local.Location
 import com.example.weathers.data.source.sensor.LocationProvider
-import com.example.weathers.data.source.sensor.getDiff
 import com.example.weathers.data.source.sensor.getMapXY
 import com.example.weathers.util.distanceTo
 import com.example.weathers.util.toLatLng
-import kotlinx.coroutines.flow.MutableStateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ForecastUiState(
     val weatherItems: List<Weather> = emptyList()
 )
 
+@HiltViewModel
 class ForecastViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
     private val locationProvider: LocationProvider
@@ -53,5 +52,11 @@ class ForecastViewModel @Inject constructor(
         val locationList = weatherRepository.getLocations(x, y)
         val curLatlng = current.toLatLng()
         return locationList.minBy { curLatlng.distanceTo(it.latLng) }
+    }
+
+    fun deleteUserLocatin(code: String) {
+        viewModelScope.launch {
+            weatherRepository.deleteUserLocation(code)
+        }
     }
 }

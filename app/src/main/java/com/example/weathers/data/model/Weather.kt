@@ -16,7 +16,7 @@ data class Weather(
 ) {
 
     val shortAdress : String
-        get() = adress
+        get() = if (adress.length > 5) "..${adress.substring(adress.length - 5)}" else adress
 
     val latLng: LatLng
         get() = LatLng(latitude, longitude)

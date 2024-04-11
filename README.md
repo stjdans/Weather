@@ -1,8 +1,12 @@
 # Weather
 공공 데이터  날씨 API 를 이용한 샘플 프로젝트  
-viewmodel, flow 를 이용 mvvm 구조의 반응형 프로그램으로 구현
+Compose, Viewmodel, Flow 를 이용 MVVM 구조의 반응형 프로그램으로 구현
 
 ### 라이브러리
+[1.0.0]
++ Compose
+
+[0.1.0]
 + Hit
 + Retrofit
 + Room
