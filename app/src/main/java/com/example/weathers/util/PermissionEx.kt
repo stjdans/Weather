@@ -34,7 +34,8 @@ fun AppCompatActivity.checkLocationPermissions(onGranted: () -> Unit, onRationna
 }
 
 fun AppCompatActivity.checkPermission(permission: String) = ActivityCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
-fun AppCompatActivity.checkPermissionsAny(permissions: Array<String>) = permissions.map { checkPermission(it) }.also { println("상태 : $it") }.any { it }
+fun AppCompatActivity.checkPermissionsAny(permissions: Array<String>) =
+    permissions.map { checkPermission(it) }.also { println("상태 : $it") }.any { it }
 
 fun AppCompatActivity.showRequestPermissionRationale(permission: String) = ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
 fun AppCompatActivity.showRequestPermissionRationalesAny(permissions: Array<String>) =

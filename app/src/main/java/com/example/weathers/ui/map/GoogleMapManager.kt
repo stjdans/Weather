@@ -107,7 +107,7 @@ class GoogleMapManager @Inject constructor(
 
             setOnCameraIdleListener {
                 _move.value = false
-                chageMarkerVisible(_zoomLevel.value, markerMap)
+                chageMarkerVisible(_zoomLevel.value)
             }
         }
     }
@@ -141,12 +141,17 @@ class GoogleMapManager @Inject constructor(
         }
     }
 
-    private fun chageMarkerVisible(zoomLevel: Int, markerMap: Map<Int, Map<String, Marker>>) {
+    private fun chageMarkerVisible(zoomLevel: Int) {
         scope.launch(Dispatchers.Main) {
             val (v1, v2) = displayStrategy.getVisibleList(zoomLevel, markerMap)
             withContext(Dispatchers.Main) {
                 v1.forEach { it.isVisible = true }
-                v2.forEach { it.isVisible = false }
+                v2.forEach {
+                    (it.tag as? Weather)?.let { weather ->
+                        markerMap[weather.level]?.remove(weather.code)
+                        it.remove()
+                    }
+                }
             }
         }
     }

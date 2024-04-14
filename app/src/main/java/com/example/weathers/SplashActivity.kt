@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.datastore.core.DataStore
 import com.example.weathers.ui.splash.SplashScreen
@@ -26,22 +27,22 @@ class SplashActivity : AppCompatActivity() {
     private lateinit var locationContracts: ActivityResultLauncher<Array<String>>
     private var isRequestLocationPermission: Boolean = false
 
-    private val ANIMAITION_DELAY = 1500L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             WeathersTheme {
-                LaunchedEffect(key1 = Unit) {
-                    delay(ANIMAITION_DELAY)
-                    checkLocationPermissions(
-                        onGranted = ::requestMainUi,
-                        onRationnale = ::requestLocationPermission,
-                        onDenied = ::requestLocationPermission)
-                }
-                SplashScreen()
+//                LaunchedEffect(key1 = Unit) {
+//                    delay(ANIMAITION_DELAY)
+//                    checkLocationPermissions(
+//                        onGranted = ::requestMainUi,
+//                        onRationnale = ::requestLocationPermission,
+//                        onDenied = ::requestLocationPermission
+//                    )
+//                }
             }
+//            SplashScreen()
         }
 
         locationContracts = setUpLocationContract(
@@ -50,7 +51,6 @@ class SplashActivity : AppCompatActivity() {
         )
 
         isRequestLocationPermission = runBlocking { dataStore.data.first().requestLocationPermission }
-
     }
 
     private fun requestMainUi() {

@@ -5,9 +5,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
 interface WeatherDestination {
@@ -41,6 +43,13 @@ object Map: WeatherDestination {
     override val unSelectedIcon: ImageVector = Icons.Outlined.LocationOn
     override val label: Int = R.string.title_map
     override val route: String = "map"
+}
+
+object Search: WeatherDestination {
+    override val icon: ImageVector = Icons.Default.Search
+    override val unSelectedIcon: ImageVector = Icons.Outlined.Search
+    override val label: Int = -1
+    override val route: String = "search"
 }
 
 val weatherTabScreen = listOf(RealTime, Forecast, Map)

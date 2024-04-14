@@ -1,5 +1,8 @@
 package com.example.weathers.ui.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,9 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,25 +31,22 @@ import com.example.weathers.MainUiState
 import com.example.weathers.Map
 import com.example.weathers.R
 import com.example.weathers.RealTime
+import com.example.weathers.Search
 import com.example.weathers.ui.forecast.ForecastScreen
 import com.example.weathers.ui.map.MapScreen
 import com.example.weathers.ui.realtime.RealTimeScreen
+import com.example.weathers.ui.search.SearchScreen
 import com.example.weathers.ui.theme.WeathersTheme
 import com.example.weathers.weatherTabScreen
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-val sampleUiState = MutableStateFlow(MainUiState()).asStateFlow()
+val sampleUiState = MainUiState.Home()
 
 @Composable
 fun MainScreen(
-    uiState: StateFlow<MainUiState> = sampleUiState,
+    state: MainUiState.Home = sampleUiState,
     onPermissionRequestClick: () -> Unit = {},
     onDeviceSettingClick: () -> Unit = {}
 ) {
-
-    val state by uiState.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
@@ -69,7 +68,11 @@ fun MainScreen(
         ) {
             WeatherNaviHost(navController = navController)
 
-            if (!state.enableGps || !state.allowedLocation) {
+            AnimatedVisibility(
+                visible = !state.permission || !state.gps,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 InfoMessage(state, onPermissionRequestClick, onDeviceSettingClick)
             }
         }
@@ -91,7 +94,11 @@ private fun WeatherNaviHost(
 //        }
 
         composable(route = RealTime.route) {
-            RealTimeScreen()
+            RealTimeScreen(onSearch = { navController.navigateSingleTop(Search.route) })
+        }
+
+        composable(route = Search.route) {
+            SearchScreen(onClose = { navController.popBackStack() })
         }
 
         composable(route = Forecast.route) {
@@ -106,7 +113,7 @@ private fun WeatherNaviHost(
 
 @Composable
 private fun InfoMessage(
-    state: MainUiState,
+    state: MainUiState.Home,
     onPermissionRequestClick: () -> Unit,
     onDeviceSettingClick: () -> Unit
 ) {
@@ -114,12 +121,12 @@ private fun InfoMessage(
     var onClick: () -> Unit = {}
 
     when {
-        !state.allowedLocation -> {
+        !state.permission -> {
             message = stringResource(id = R.string.error_location_permission)
             onClick = onPermissionRequestClick
         }
 
-        !state.enableGps -> {
+        !state.gps -> {
             message = stringResource(id = R.string.error_gps)
             onClick = onDeviceSettingClick
         }
@@ -173,6 +180,9 @@ private fun MainScreenPreview() {
 }
 
 fun NavController.navigateSingleTop(route: String) = this.navigate(route) {
+    popUpTo(this@navigateSingleTop.graph.findStartDestination().id) {
+        saveState = true
+    }
     launchSingleTop = true
     restoreState = true
 }

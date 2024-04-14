@@ -1,34 +1,25 @@
 package com.example.weathers
 
-import android.content.Context
-import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weathers.ui.main.MainScreen
+import com.example.weathers.ui.splash.SplashScreen
 import com.example.weathers.ui.theme.WeathersTheme
 import com.example.weathers.util.LOCATION_PERMISSIONS
 import com.example.weathers.util.checkLocationPermission
+import com.example.weathers.util.checkLocationPermissions
 import com.example.weathers.util.goToDeviceLocation
 import com.example.weathers.util.goToDeviceSettings
 import com.example.weathers.util.setUpLocationContract
 import com.example.weathers.util.showRequestPermissionRationalesAny
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-
-data class MainUiState(
-    val allowedLocation: Boolean = false,
-    val enableGps: Boolean = false
-)
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -36,40 +27,31 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var viewModel: MainViewModel
 
-    private lateinit var locationContracts: ActivityResultLauncher<Array<String>>
-    private val allowLocationPermission = MutableStateFlow(false)
-
-    private val enableGps = flow {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        emit(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-        while (true) {
-            delay(5000)
-            emit(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-        }
-    }
-
-    private val uiState = combine(allowLocationPermission, enableGps) { permission, gps ->
-        MainUiState(permission, gps)
-    }.stateIn(
-        scope = lifecycleScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = MainUiState()
-    )
+    private lateinit var splashContracts: ActivityResultLauncher<Array<String>>
+    private lateinit var mainContracts: ActivityResultLauncher<Array<String>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        splashContracts = setUpLocationContract(
+            onGranted = ::updateState,
+            onDenied = ::updateState
+        )
+
+        mainContracts = setUpLocationContract(
+            onGranted = ::updateLocationPermissionState
+        )
+
         setContent {
             WeathersTheme {
-                MainScreen(
-                    uiState = uiState,
+                WeatherApp(
+                    viewModel = viewModel,
+                    onSplashComplete = ::checkPermission,
                     onPermissionRequestClick = ::handleNotAllowLocationPermission,
                     onDeviceSettingClick = ::goToDeviceLocation
                 )
             }
         }
-
-        locationContracts = setUpLocationContract(onGranted = ::updateLocationPermissionState)
     }
 
     override fun onResume() {
@@ -83,14 +65,57 @@ class MainActivity : AppCompatActivity() {
         viewModel.stopLocationUpdate()
     }
 
+    private fun checkPermission() {
+        checkLocationPermissions(
+            onGranted = ::updateState,
+            onRationnale = ::requestLocationPermission,
+            onDenied = ::requestLocationPermission
+        )
+    }
+
+    private fun requestLocationPermission() {
+        if (!viewModel.requestPermission) {
+            viewModel.requestPermission = true
+        }
+
+        splashContracts.launch(LOCATION_PERMISSIONS)
+    }
+
     private fun handleNotAllowLocationPermission() {
         when {
-            showRequestPermissionRationalesAny(LOCATION_PERMISSIONS) -> locationContracts.launch(LOCATION_PERMISSIONS)
+            showRequestPermissionRationalesAny(LOCATION_PERMISSIONS) -> mainContracts.launch(LOCATION_PERMISSIONS)
             else -> goToDeviceSettings()
         }
     }
 
     private fun updateLocationPermissionState() {
-        allowLocationPermission.value = checkLocationPermission()
+        viewModel.updateAllowPermission(checkLocationPermission())
+    }
+
+    private fun updateState() {
+        viewModel.updateState(true)
     }
 }
+
+@Composable
+private fun WeatherApp(
+    viewModel: MainViewModel,
+    onSplashComplete: () -> Unit,
+    onPermissionRequestClick: () -> Unit,
+    onDeviceSettingClick: () -> Unit
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    when (state) {
+        MainUiState.Splash -> {
+            SplashScreen(onSplashComplete = onSplashComplete)
+        }
+        is MainUiState.Home -> {
+            MainScreen(
+                state = state as MainUiState.Home,
+                onPermissionRequestClick = onPermissionRequestClick,
+                onDeviceSettingClick = onDeviceSettingClick
+            )
+        }
+    }
+}
+

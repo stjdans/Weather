@@ -3,6 +3,7 @@ package com.example.weathers.data.source.sensor
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
+import android.location.LocationManager
 import android.os.Looper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -12,19 +13,27 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import java.util.concurrent.CompletableFuture
 
-class LocationProvider(
-    context: Context,
-    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-) {
+class LocationProvider(context: Context, ) {
     private var fusedLocationProviderClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private var _data = MutableStateFlow<Location?>(null)
     private var isUpdating = false
 
     private val INTERVALMILL = 60 * 1000L
+
+    val enableGps = flow {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        emit(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        while (true) {
+            delay(5000)
+            emit(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        }
+    }
 
     var data = _data.asStateFlow()
 
